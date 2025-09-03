@@ -104,6 +104,10 @@ void VIEW_Set (TView *view)
 
 HICON VIEW_FlipMinimized()
 {   
+  // shash: Hack to force to 320x240
+  DWORD VIDEO_ScreenWidth = 320;
+  DWORD VIDEO_ScreenHeight = 240;
+
   DWORD bits[32][32];  
   ZeroMemory (bits,sizeof(bits));
 	DWORD cx = 32;
@@ -128,6 +132,7 @@ HICON VIEW_FlipMinimized()
   return CreateIcon(HInst,32,32,1,32,(BYTE *)bits,(BYTE *)bits);
 }
 
+/*
 void VIEW_Flip ()
 {
   if (GBL_Bits==NULL)
@@ -294,4 +299,5 @@ void VIEW_Flip ()
   if (hr==DDERR_SURFACELOST) return;
   if (ERRDX ("VIDEO_BackBuffer->Unlock, View flip!")) return;
 }
+*/
 

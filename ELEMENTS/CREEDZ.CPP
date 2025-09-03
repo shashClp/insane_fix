@@ -90,12 +90,26 @@ void CREEDZ_Play(float iTick)
 {
 	MISC_MemSet4(GBL_Bits,0,GBL_Size);
 	memcpy(img8Tmp2->bits,CREEDZ_who->bits,GBL_Size);
-	char iFDist = -(rand()%127);
-	HDist8((char*)img8Tmp2->bits,20,220,iFDist);
+
+    //-----------------------------------------------------------------------------------
+    // shash: Framerate fix
+    static char iFDist = -(rand()%127);
+
+    static DWORD lastTime = GetTickCount();
+    DWORD currentTime = GetTickCount();
+    if (currentTime-lastTime > 16)
+    {
+	    iFDist = -(rand()%127);
+        lastTime = currentTime;
+    }
+    
+    HDist8((char*)img8Tmp2->bits,20,220,iFDist);
+    //-----------------------------------------------------------------------------------
 
 	//Fondo Ruido
     long iFactor = (rand() % 35);
     ScrollToScreen8((char*)img8Tmp->bits,img8GBL_Ruido,iFactor,0);
+        /*
 		void* pScr = img8Tmp->bits;
 		_asm{
 			mov	edi,[pScr]
@@ -117,6 +131,7 @@ void CREEDZ_Play(float iTick)
 			 dec	edx
 			jnz	buc
 		}
+        */
 	MergeAlphaADD(img8Tmp->bits,img8Tmp->bits,img8Tmp2->bits,GBL_Size);
 	//Fusionar layer alfa con fondo rgb
     FlatternAlpha(GBL_Bits,GBL_Bits,img8Tmp->bits);

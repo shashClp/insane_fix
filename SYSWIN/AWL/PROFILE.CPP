@@ -47,7 +47,7 @@ void PROFILE_Init(DWORD sections)
   PROFILE_active = false;
   PROFILE_beginned=false;
   PROFILE_desc = (PROFILE_sections[0].ticks/10000)+3;
-  for (i=0; i<PROFILE_seccount; i++)
+  for (DWORD i=0; i<PROFILE_seccount; i++)
   {
     strcpy (PROFILE_sections[i].name,"Undefined!");
   }

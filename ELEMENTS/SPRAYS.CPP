@@ -48,7 +48,18 @@ void SCENA_PLASMAIN(float iTick)
 
   CalculaTablaSenos(iCnt);
   CreaCampanaPlasmaCirc();
-  MuevePlasmaCirc();
+  
+  //-----------------------------------------------------------------------------------
+  // shash: Framerate fix
+  static DWORD lastTime = GetTickCount();
+  DWORD currentTime = GetTickCount();
+  if (currentTime-lastTime > 16)
+  {
+    MuevePlasmaCirc();
+    lastTime = currentTime;
+  }
+  //-----------------------------------------------------------------------------------
+  
   RenderPlasmaCircAlpha(img8SPR_Alpha);
 
 	long iFact = (int)(255.0f - iTick*255.0f);
@@ -80,7 +91,7 @@ void SCENA_SCROLLLEFT(float tick)
 {
   int iTick=tick*24000;
   
-  long iScrollPos = fmod(iTick/20,1344);
+  long iScrollPos = fmodf(iTick/20,1344);
   long iFactor = ((iTick/30) % 15) -7;  	
 
   memset(img8SPR_Alpha,0,GBL_Size);

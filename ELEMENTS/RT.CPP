@@ -3,6 +3,7 @@
 #include "3d.h"
 #include "rt.h"
 
+
 SElemBufInterp BufInterp8x8[26][64];                
 
 long ii,jj,uu,vv,u1,v1,u2,v2,du1,dv1,du2,dv2;

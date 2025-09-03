@@ -4,6 +4,8 @@
 #ifndef AWL_BITMAP
 #define AWL_BITMAP
 
+/*
+// shash: Already defined in wingdi.h
 typedef struct { 
     DWORD        bV5Size; 
     LONG         bV5Width; 
@@ -30,6 +32,7 @@ typedef struct {
     DWORD        bV5ProfileSize; 
     DWORD        bV5Reserved; 
 } BITMAPV5HEADER, FAR *LPBITMAPV5HEADER, *PBITMAPV5HEADER; 
+*/
 
 typedef struct {
   BITMAPV5HEADER Header;

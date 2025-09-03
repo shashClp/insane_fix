@@ -92,7 +92,9 @@ WORD CA3D_A3D::GetCamNum(char *camname)
 {
   if (!numCams) return 0xffff;
 
-  for(WORD i=0; i<numCams; i++)
+  WORD i = 0;
+
+  for(i=0; i<numCams; i++)
     if (!stricmp(camera[i].camname,camname)) break;
 
   return i;

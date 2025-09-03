@@ -26,7 +26,7 @@ typedef struct{
 
 WORD   Num_Objectes=1000;
 float  Ordre_Caos=0.9;
-byte   Num_Punts_Gravetat=1;
+byte   Num_Punts_Gravetat=3;
 Particle_Structure      *SystemP;
 G_Structure             *SystemG;
 
@@ -150,7 +150,17 @@ void Particles_Scene( float a)
   SystemG[1].X = S_c*28;SystemG[1].Y = C_b*23; SystemG[1].Z = S_b*23;
   SystemG[2].X = C_b*21;SystemG[2].Y = S_a*63; SystemG[2].Z = S_a*33;
 
-  if (PActive) RunParticles ();
+  //-----------------------------------------------------------------------------------
+  // shash: Framerate fix
+  static DWORD lastTime = GetTickCount();
+  DWORD currentTime = GetTickCount();
+  if (currentTime-lastTime > 8)
+  {
+      if (PActive) RunParticles ();
+      lastTime = currentTime;
+  }
+  //-----------------------------------------------------------------------------------
+  
 		
 	MTX_Rotate (Matriu,sin(a*63.2)*360,sin(a*73.7)*320,cos(a*94.2)*360);
 

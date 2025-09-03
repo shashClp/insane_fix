@@ -23,55 +23,55 @@
 
 #include <cmath>
 //#include "CODE\RDefines\extra.h"
-#include "CODE\Rbase\RWorld.h"
-#include "CODE\Rbase\Rcamera.h"
+#include "RWorld.h"
+#include "Rcamera.h"
 //#include "CODE\Refects\inter.h"
-#include "CODE\RObjects\RObject.h"
-#include "CODE\RObjects\RObject.cpp"
+#include "RObject.h"
+#include "RObject.cpp"
 
 #ifdef BlobOK
-    #include "CODE\RObjects\rblob.h"
-    #include "CODE\RObjects\rblob.cpp"
+    #include "rblob.h"
+    #include "rblob.cpp"
 #endif
 #ifdef CSGOK
-    #include "CODE\RObjects\rcsg.h"
-    #include "CODE\RObjects\rcsg.cpp"
+    #include "rcsg.h"
+    #include "rcsg.cpp"
 #endif
 #ifdef CubeOK
-    #include "CODE\RObjects\rcube.h"
-    #include "CODE\RObjects\rcube.cpp"
+    #include "rcube.h"
+    #include "rcube.cpp"
 #endif
 #ifdef CylinderOK
-    #include "CODE\RObjects\rcylinde.h"
-    #include "CODE\RObjects\rcylinde.cpp"
+    #include "rcylinde.h"
+    #include "rcylinde.cpp"
 #endif
 #ifdef EllipseOK
-    #include "CODE\RObjects\rellipse.h"
-    #include "CODE\RObjects\rellipse.cpp"
+    #include "rellipse.h"
+    #include "rellipse.cpp"
 #endif
 #ifdef PlaneOK
-    #include "CODE\RObjects\rplane.h"
-    #include "CODE\RObjects\rplane.cpp"
+    #include "rplane.h"
+    #include "rplane.cpp"
 #endif
 #ifdef SorOK
-    #include "CODE\RObjects\rsor.h"
-    #include "CODE\RObjects\rsor.cpp"
+    #include "rsor.h"
+    #include "rsor.cpp"
 #endif
 #ifdef SphereOK
-    #include "CODE\RObjects\rsphere.h"
-    #include "CODE\RObjects\rsphere.cpp"
+    #include "rsphere.h"
+    #include "rsphere.cpp"
 #endif
 
 //==============================================================================
-#include "CODE\RDefines\rvertex.cpp"
+#include "rvertex.cpp"
 //==============================================================================
 //==============================================================================
-#include "CODE\Rbase\rbounder.cpp"
-#include "CODE\Rbase\rcamera.cpp"
-#include "CODE\Rbase\rget.cpp"
-#include "CODE\Rbase\rset.cpp"
-#include "CODE\Rbase\rworld.cpp"
-#include "CODE\REFECTS\rlight.cpp"
+#include "rbounder.cpp"
+#include "rcamera.cpp"
+#include "rget.cpp"
+#include "rset.cpp"
+#include "rworld.cpp"
+#include "rlight.cpp"
 //==============================================================================
-#include "CODE\RDefines\rdefines.cpp"
+#include "rdefines.cpp"
 #endif

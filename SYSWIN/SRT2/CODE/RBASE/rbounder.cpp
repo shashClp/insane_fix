@@ -32,7 +32,7 @@ void Bounder_Init(long X,long Y,long GX, long GY)
     Bounder = (byte*) R_GetMem ((1+ X/GX)*(1 + Y/GY));
     BounderCheck = (byte*) R_GetMem ((1+ X/GX)*(1 + Y/GY));
     for (long i = 0; i < (1+ X/GX)*(1 + Y/GY); i++) BounderCheck[i] = 0;
-    for (i = 0; i < (1+ X/GX)*(1 + Y/GY); i++) Bounder[i] = i%3;
+    for (long i = 0; i < (1+ X/GX)*(1 + Y/GY); i++) Bounder[i] = i%3;
 
 }
 

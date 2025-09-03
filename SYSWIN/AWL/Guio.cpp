@@ -243,7 +243,7 @@ void GUIO_Run (DWORD Pos)
     }
     // Eliminem les funcions ja utilitzades
     LIST_GetTraverse (ta,list_eliminar);
-    for (i=0; i<list_eliminar.count; i++)
+    for (DWORD i=0; i<list_eliminar.count; i++)
     {
       l = LIST_GetItem (ta);
       ll = (TListItem **)(l+1);
@@ -256,7 +256,7 @@ void GUIO_Run (DWORD Pos)
     // Base Sequences s'eliminen quan ja han expirat el temps
     LIST_Init (list_eliminar);
     LIST_GetTraverse (ta,GUIO_Base);
-    for (i=0; i<GUIO_Base.count; i++)
+    for (DWORD i=0; i<GUIO_Base.count; i++)
     {
       l = LIST_GetItem (ta);
       g = (TSequence *)(l+1);
@@ -271,7 +271,7 @@ void GUIO_Run (DWORD Pos)
 
     // Eliminem les Base sequences ja expirades
     LIST_GetTraverse (ta,list_eliminar);
-    for (i=0; i<list_eliminar.count; i++)
+    for (DWORD i=0; i<list_eliminar.count; i++)
     {
       l = LIST_GetItem (ta);
       ll = (TListItem **)(l+1);
@@ -286,7 +286,7 @@ void GUIO_Run (DWORD Pos)
     TListZItem **llz;    
     LIST_Init (list_eliminar);
     LISTZ_GetTraverse (taZ,GUIO_Layers);
-    for (i=0; i<GUIO_Layers.count; i++)
+    for (DWORD i=0; i<GUIO_Layers.count; i++)
     {
       lz = LISTZ_GetItem (taZ);
       g = (TSequence *)(lz+1);
@@ -301,7 +301,7 @@ void GUIO_Run (DWORD Pos)
 
     // Eliminem els layers ja expirats
     LIST_GetTraverse (ta,list_eliminar);
-    for (i=0; i<list_eliminar.count; i++)
+    for (DWORD i=0; i<list_eliminar.count; i++)
     {
       l = LIST_GetItem (ta);
       llz = (TListZItem **)(l+1);
@@ -372,7 +372,7 @@ byte GUIO_Delimiter ( char CH )
 {
   for ( long i = 0; i < 5; i ++ )
    if ( TOKEN_DELIMITERS[i] == CH ) return 1;
-  for ( i = 5; i < 10; i ++ )
+  for ( long i = 5; i < 10; i ++ )
    if ( TOKEN_DELIMITERS[i] == CH ) return 2;
   if  ( ( CH==13 ) || ( CH==10 ) )  return 1;
  
@@ -383,7 +383,7 @@ return 0;
 
 void GUIO_GetToken ()
 {
-  char TOKEN[200];
+  char TOKEN[200]={};
   long Col_TMP = 0;
   char ActCharacter;  
 

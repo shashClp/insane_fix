@@ -240,7 +240,7 @@ bool BEZIER_SurfaceInit3DObject(TBezierSurface &s, int s_detail, int c_detail, c
 
 	idx = 0;
 	int val1, val2;
-	for(i=0; i<c_detail-1; i++) {
+	for(int i=0; i<c_detail-1; i++) {
 		for (int j=0; j<s_detail-1; j++) {
 			val1 = i*s_detail+j;
 			val2 = (i+1)*s_detail+j;
@@ -310,7 +310,7 @@ TObject* BEZIER_Surface2Object(TBezierSurface &s, int s_detail, int c_detail)
 	
 	// Normals de vertexs per la resta de vertexs
 	WORD k=0;
-	for(i=0; i<c_detail; i++) {
+	for(WORD i=0; i<c_detail; i++) {
 		for (int j=0; j<s_detail; j++) {
 			if (j==0 && i==0) k++; else
 			if (j==sn && i==0) k++; else
@@ -357,7 +357,7 @@ TObject* BEZIER_Surface2Object(TBezierSurface &s, int s_detail, int c_detail)
 
 	k = s_detail+1;
 	int p0idx = 0, p1idx = sn*2+1;
-	for(i=1; i<cn; i++) {
+	for(WORD i=1; i<cn; i++) {
 		for (int j=1; j<sn; j++) {
 			nrm.x = s.obj->plane[p0idx].A; nrm.x += s.obj->plane[p0idx+1].A; nrm.x += s.obj->plane[p0idx+2].A;
 			nrm.x += s.obj->plane[p1idx].A;	nrm.x += s.obj->plane[p1idx+1].A; nrm.x += s.obj->plane[p1idx+2].A;

@@ -55,17 +55,17 @@ void InitClipTabEspejo(int lim_inf,int lim_sup)
 	for(long i=0;i<256;i++)
 		CLIPTAB_X[i] = 256-i;
 
-    for(i=0;i<1024-256;i++)
+    for(long i=0;i<1024-256;i++)
 		if(i<GBL_Width)
 			CLIPTAB_X[i+256] = i;
 		else
 			CLIPTAB_X[i+256] = (GBL_Width<<1) -i -1;
 
 
-    for(i=0;i<256+lim_inf;i++)
+    for(long i=0;i<256+lim_inf;i++)
 		CLIPTAB_Y[i] = lim_inf*GBL_Width; //aqui aun no hay espejo
 
-	for(i=lim_inf;i<1024-256;i++)
+	for(long i=lim_inf;i<1024-256;i++)
 		if(i<lim_sup)
 			CLIPTAB_Y[i+256] = i*GBL_Width;
 		else

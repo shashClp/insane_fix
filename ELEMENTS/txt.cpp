@@ -20,7 +20,7 @@ TImage *El[3];
 
 bool CheckFrameRate(long iTick)
 {
-	static iLastFrame = -1;
+	static long iLastFrame = -1;
     return (iTick/10) != iLastFrame;
 }
 

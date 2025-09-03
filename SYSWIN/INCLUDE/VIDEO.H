@@ -18,9 +18,8 @@ extern DWORD VIDEO_ScreenHeight;
 extern DWORD VIDEO_ScreenDisplay;
 extern BYTE VIDEO_ScreenBpp;
 
-extern LPDIRECTDRAW4 VIDEO_DD;
-extern LPDIRECTDRAWSURFACE4 VIDEO_Primary;
-extern LPDIRECTDRAWSURFACE4 VIDEO_BackBuffer;
+
+void VIDEO_NotifyResize (DWORD width, DWORD height);
 
 void VIDEO_Flip ();
 bool VIDEO_Init ();

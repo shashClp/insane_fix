@@ -1,5 +1,5 @@
-/* BASS 0.6 C/C++ header file, copyright (c) 1999 Ian Luck.
-   Please report bugs/suggestions/etc... to bass@icl.ndirect.co.uk */
+/* BASS 1.0 C/C++ header file, copyright (c) 1999-2001 Ian Luck.
+   Please report bugs/suggestions/etc... to bass@un4seen.com */
 
 #ifndef BASS_H
 #define BASS_H
@@ -19,12 +19,13 @@ typedef DWORD HSAMPLE;		// sample handle
 typedef DWORD HCHANNEL;		// playing sample's channel handle
 typedef DWORD HSTREAM;		// sample stream handle
 typedef DWORD HSYNC;		// synchronizer handle
+typedef DWORD HDSP;			// DSP handle
 
 // Error codes returned by BASS_GetErrorCode()
 #define BASS_OK				0	// all is OK
 #define BASS_ERROR_MEM		1	// memory error
 #define BASS_ERROR_FILEOPEN	2	// can't open the file
-#define BASS_ERROR_DRIVER	3	// can't find a free sound driver
+#define BASS_ERROR_DRIVER	3	// can't find a free/valid driver
 #define BASS_ERROR_BUFLOST	4	// the sample buffer was lost - please report this!
 #define BASS_ERROR_HANDLE	5	// invalid handle
 #define BASS_ERROR_FORMAT	6	// unsupported format
@@ -46,6 +47,14 @@ typedef DWORD HSYNC;		// synchronizer handle
 #define BASS_ERROR_NOEAX	22	// no EAX support
 #define BASS_ERROR_DEVICE	23	// illegal device number
 #define BASS_ERROR_NOPLAY	24	// not playing
+#define BASS_ERROR_FREQ		25	// illegal sample rate
+#define BASS_ERROR_NOA3D	26	// A3D.DLL is not installed
+#define BASS_ERROR_NOTFILE	27	// the stream is not a file stream (WAV/MP3/MP2/MP1)
+#define BASS_ERROR_NOHW		29	// no hardware voices available
+#define BASS_ERROR_NOSYNC	30	// synchronizers have been disabled
+#define BASS_ERROR_EMPTY	31	// the MOD music has no sequence data
+#define BASS_ERROR_NONET	32	// no internet connection could be opened
+#define BASS_ERROR_CREATE	33	// couldn't create the file
 #define BASS_ERROR_UNKNOWN	-1	// some other mystery error
 
 // Device setup flags
@@ -55,6 +64,13 @@ typedef DWORD HSYNC;		// synchronizer handle
 /* If the BASS_DEVICE_3D flag is not specified when initilizing BASS,
 then the 3D flags (BASS_SAMPLE_3D and BASS_MUSIC_3D) are ignored when
 loading/creating a sample/stream/music. */
+#define BASS_DEVICE_A3D		8	// enable A3D functionality
+#define BASS_DEVICE_NOSYNC	16	// disable synchronizers
+#define BASS_DEVICE_LEAVEVOL	32	// leave the volume as it is
+
+// DirectSound interfaces (for use with BASS_GetDSoundObject)
+#define BASS_OBJECT_DS		1	// IDirectSound
+#define BASS_OBJECT_DS3DL	2	// IDirectSound3DListener
 
 typedef struct {
 	DWORD size;		// size of this struct (set this before calling the function)
@@ -68,6 +84,8 @@ support (DSCAPS_EMULDRIVER is specified in flags) */
 	DWORD minrate;	// min sample rate supported by the hardware
 	DWORD maxrate;	// max sample rate supported by the hardware
 	BOOL eax;		// device supports EAX? (always FALSE if BASS_DEVICE_3D was not used)
+	DWORD a3d;		// A3D version (0=unsupported or BASS_DEVICE_A3D was not used)
+	DWORD dsver;	// DirectSound version (use to check for DX5/7 functions)
 } BASS_INFO;
 
 // BASS_INFO flags (from DSOUND.H)
@@ -84,10 +102,6 @@ mixing, all these formats are supported by SOFTWARE mixing */
 #define DSCAPS_SECONDARY8BIT	0x00000400	// 8 bit
 #define DSCAPS_SECONDARY16BIT	0x00000800	// 16 bit
 
-// Volume sliding flags
-#define BASS_SLIDE_DIGITAL	1	// slide digital master volume
-#define BASS_SLIDE_CD		2	// slide CD volume
-
 // Music flags
 #define BASS_MUSIC_RAMP		1	// normal ramping
 #define BASS_MUSIC_RAMPS	2	// sensitive ramping
@@ -99,6 +113,10 @@ leave sharp attacked samples, unlike normal ramping. */
 #define BASS_MUSIC_PT1MOD	32	// play .MOD as ProTracker 1 does
 #define BASS_MUSIC_MONO		64	// force mono mixing (less CPU usage)
 #define BASS_MUSIC_3D		128	// enable 3D functionality
+#define BASS_MUSIC_POSRESET	256	// stop all notes when moving position
+#define BASS_MUSIC_SURROUND	512	// surround sound
+#define BASS_MUSIC_SURROUND2	1024	// surround sound (mode 2)
+#define BASS_MUSIC_STOPBACK	2048	// stop the music on a backwards jump effect
 
 // Sample info structure & flags
 typedef struct {
@@ -116,6 +134,10 @@ is 3D, BASS_SAMPLE_3D is in flags) see BASS_ChannelSet3DAttributes */
 	DWORD iangle;	// angle of inside projection cone
 	DWORD oangle;	// angle of outside projection cone
 	DWORD outvol;	// delta-volume outside the projection cone
+/* The following are the defaults used if the sample uses the DirectX 7
+voice allocation/management features. */
+	DWORD vam;		// voice allocation/management flags (BASS_VAM_xxx)
+	DWORD priority;	// priority (0=lowest, 0xffffffff=highest)
 } BASS_SAMPLE;
 
 #define BASS_SAMPLE_8BITS		1	// 8 bit, else 16 bit
@@ -123,11 +145,43 @@ is 3D, BASS_SAMPLE_3D is in flags) see BASS_ChannelSet3DAttributes */
 #define BASS_SAMPLE_LOOP		4	// looped
 #define BASS_SAMPLE_3D			8	// 3D functionality enabled
 #define BASS_SAMPLE_SOFTWARE	16	// it's NOT using hardware mixing
+#define BASS_SAMPLE_MUTEMAX		32	// muted at max distance (3D only)
+#define BASS_SAMPLE_VAM			64	// uses the DX7 voice allocation & management
 #define BASS_SAMPLE_OVER_VOL	0x10000	// override lowest volume
 #define BASS_SAMPLE_OVER_POS	0x20000	// override longest playing
 #define BASS_SAMPLE_OVER_DIST	0x30000 // override furthest from listener (3D only)
 
-#define BASS_MP3_HALFRATE	0x10000 // reduced quality MP3 (half sample rate)
+#define BASS_MP3_HALFRATE		0x10000 // reduced quality MP3/MP2/MP1 (half sample rate)
+#define BASS_MP3_SETPOS			0x20000 // enable seeking on the MP3/MP2/MP1
+
+#define BASS_STREAM_AUTOFREE	0x40000	// automatically free the stream when it stop/ends
+#define BASS_STREAM_RESTRATE	0x80000	// restrict the download rate of internet file streams
+
+// DX7 voice allocation flags
+#define BASS_VAM_HARDWARE		1
+/* Play the sample in hardware. If no hardware voices are available then
+the "play" call will fail */
+#define BASS_VAM_SOFTWARE		2
+/* Play the sample in software (ie. non-accelerated). No other VAM flags
+may be used together with this flag. */
+
+// DX7 voice management flags
+/* These flags enable hardware resource stealing... if the hardware has no
+available voices, a currently playing buffer will be stopped to make room for
+the new buffer. NOTE: only samples loaded/created with the BASS_SAMPLE_VAM
+flag are considered for termination by the DX7 voice management. */
+#define BASS_VAM_TERM_TIME		4
+/* If there are no free hardware voices, the buffer to be terminated will be
+the one with the least time left to play. */
+#define BASS_VAM_TERM_DIST		8
+/* If there are no free hardware voices, the buffer to be terminated will be
+one that was loaded/created with the BASS_SAMPLE_MUTEMAX flag and is beyond
+it's max distance. If there are no buffers that match this criteria, then the
+"play" call will fail. */
+#define BASS_VAM_TERM_PRIO		16
+/* If there are no free hardware voices, the buffer to be terminated will be
+the one with the lowest priority. */
+
 
 // 3D vector (for 3D positions/velocities/orientations)
 typedef struct {
@@ -209,21 +263,53 @@ enum
 #define EAX_PRESET_DIZZY           EAX_ENVIRONMENT_DIZZY,0.139F,17.234F,0.666F
 #define EAX_PRESET_PSYCHOTIC       EAX_ENVIRONMENT_PSYCHOTIC,0.486F,7.563F,0.806F
 
-typedef DWORD (CALLBACK STREAMPROC)(HSTREAM handle, void *buffer, DWORD length);
+// A3D resource manager modes
+#define A3D_RESMODE_OFF				0	// off
+#define A3D_RESMODE_NOTIFY			1	// notify when there are no free hardware channels
+#define A3D_RESMODE_DYNAMIC     	2	// non-looping channels are managed
+#define A3D_RESMODE_DYNAMIC_LOOPERS	3	// all (inc. looping) channels are managed (req A3D 1.2)
+
+// software 3D mixing algorithm modes (used with BASS_Set3DAlgorithm)
+#define BASS_3DALG_DEFAULT	0
+/* default algorithm (currently translates to BASS_3DALG_OFF) */
+#define BASS_3DALG_OFF		1
+/* Uses normal left and right panning. The vertical axis is ignored except for
+scaling of volume due to distance. Doppler shift and volume scaling are still
+applied, but the 3D filtering is not performed. This is the most CPU efficient
+software implementation, but provides no virtual 3D audio effect. Head Related
+Transfer Function processing will not be done. Since only normal stereo panning
+is used, a channel using this algorithm may be accelerated by a 2D hardware
+voice if no free 3D hardware voices are available. */
+#define BASS_3DALG_FULL		2
+/* This algorithm gives the highest quality 3D audio effect, but uses more CPU.
+Requires Windows 98 2nd Edition or Windows 2000 that uses WDM drivers, if this
+mode is not available then BASS_3DALG_OFF will be used instead. */
+#define BASS_3DALG_LIGHT	3
+/* This algorithm gives a good 3D audio effect, and uses less CPU than the FULL
+mode. Requires Windows 98 2nd Edition or Windows 2000 that uses WDM drivers, if
+this mode is not available then BASS_3DALG_OFF will be used instead. */
+
+typedef DWORD (CALLBACK STREAMPROC)(HSTREAM handle, void *buffer, DWORD length, DWORD user);
 /* Stream callback function. NOTE: A stream function should obviously be as quick
 as possible, other streams (and MOD musics) can't be mixed until it's finished.
 handle : The stream that needs writing
 buffer : Buffer to write the samples in
 length : Number of bytes to write
+user   : The 'user' parameter value given when calling BASS_StreamCreate
 RETURN : Number of bytes written. If less than "length" then the
          stream is assumed to be at the end, and is stopped. */
 
 /* Sync types (with BASS_ChannelSetSync() "param" and SYNCPROC "data"
 definitions) & flags. */
 #define BASS_SYNC_MUSICPOS	0
-/* Sync when a music reaches a position.
+#define BASS_SYNC_POS		0
+/* Sync when a music or stream reaches a position.
+if HMUSIC...
 param: LOWORD=order (0=first, -1=all) HIWORD=row (0=first, -1=all)
-data : LOWORD=order HIWORD=row */
+data : LOWORD=order HIWORD=row
+if HSTREAM...
+param: position in bytes
+data : not used */
 #define BASS_SYNC_MUSICINST	1
 /* Sync when an instrument (sample for the non-instrument based formats)
 is played in a music (not including retrigs).
@@ -232,16 +318,33 @@ data : LOWORD=note HIWORD=volume (0-64) */
 #define BASS_SYNC_END		2
 /* Sync when a music or file stream reaches the end.
 param: not used
-data : not used */
+data : 1 = the sync is triggered by a backward jump in a MOD music, otherwise not used */
+#define BASS_SYNC_MUSICFX	3
+/* Sync when the "sync" effect (XM/MTM/MOD: E8x, IT/S3M: S0x) is used.
+param: 0:data=pos, 1:data="x" value
+data : param=0: LOWORD=order HIWORD=row, param=1: "x" value */
+#define BASS_SYNC_MIXTIME	0x40000000	// FLAG: sync at mixtime, else at playtime
 #define BASS_SYNC_ONETIME	0x80000000	// FLAG: sync only once, else continuously
 
-typedef void (CALLBACK SYNCPROC)(HSYNC handle, DWORD channel, DWORD data);
+typedef void (CALLBACK SYNCPROC)(HSYNC handle, DWORD channel, DWORD data, DWORD user);
 /* Sync callback function. NOTE: a sync callback function should be very
 quick (eg. just posting a message) as other syncs cannot be processed
-until it has finished.
+until it has finished. If the sync is a "mixtime" sync, then other streams
+and MOD musics can not be mixed until it's finished either.
 handle : The sync that has occured
-channel: Channel that the sync occured in (HMUSIC)
-data   : Additional data associated with the sync's occurance */
+channel: Channel that the sync occured in
+data   : Additional data associated with the sync's occurance
+user   : The 'user' parameter given when calling BASS_ChannelSetSync */
+
+typedef void (CALLBACK DSPPROC)(HSYNC handle, DWORD channel, void *buffer, DWORD length, DWORD user);
+/* DSP callback function. NOTE: A DSP function should obviously be as quick as
+possible... other DSP functions, streams and MOD musics can not be processed
+until it's finished.
+handle : The DSP handle
+channel: Channel that the DSP is being applied to
+buffer : Buffer to apply the DSP to
+length : Number of bytes in the buffer
+user   : The 'user' parameter given when calling BASS_ChannelSetDSP */
 
 #define CDCHANNEL	0	// CD channel, for use with BASS_Channel functions
 
@@ -281,6 +384,19 @@ musvol : MOD music global volume level (NULL=don't retrieve it)
 samvol : Sample global volume level (NULL=don't retrieve it)
 strvol : Stream global volume level (NULL=don't retrieve it) */
 
+void BASSDEF(BASS_SetLogCurves)(BOOL volume, BOOL pan);
+/* Make the volume/panning values translate to a logarithmic curve,
+or a linear "curve" (the default).
+volume : volume curve (FALSE=linear, TRUE=log)
+pan    : panning curve (FALSE=linear, TRUE=log) */
+
+void BASSDEF(BASS_Set3DAlgorithm)(DWORD algo);
+/* Set the 3D algorithm for software mixed 3D channels (does not affect
+hardware mixed channels). Changing the mode only affects subsequently
+created or loaded samples/streams/musics, not those that already exist.
+Requires DirectX 7 or above.
+algo   : algorithm flag (BASS_3DALG_xxx) */
+
 DWORD BASSDEF(BASS_ErrorGetCode)();
 /* Get the BASS_ERROR_xxx error code. Use this function to get the
 reason for an error. */
@@ -288,12 +404,11 @@ reason for an error. */
 
 BOOL BASSDEF(BASS_Init)(int device, DWORD freq, DWORD flags, HWND win);
 /* Initialize the digital output. This must be called before all following
-BASS functions (except CD functions). The volume is initially set to 100
-(the maximum), use BASS_SetVolume() to adjust it.
+BASS functions (except CD functions).
 device : Device to use (0=first, -1=default, -2=no sound)
 freq   : Output sample rate
 flags  : BASS_DEVICE_xxx flags
-win    : Owner window
+win    : Owner window (0=current foreground window)
 
 NOTE: The "no sound" device (device=-2), allows loading and "playing"
 of MOD musics only (all sample/stream functions and most other functions
@@ -305,16 +420,23 @@ void BASSDEF(BASS_Free)();
 /* Free all resources used by the digital output, including all musics
 and samples. */
 
+void *BASSDEF(BASS_GetDSoundObject)(DWORD object);
+/* Retrieve a pointer to a DirectSound interface. This can be used by
+advanced users to "plugin" external functionality.
+object : The interface to retrieve (BASS_OBJECT_xxx)
+RETURN : A pointer to the requested interface (NULL=error) */
+
 void BASSDEF(BASS_GetInfo)(BASS_INFO *info);
 /* Retrieve some information on the device being used.
 info   : Pointer to store info at */
 
-DWORD BASSDEF(BASS_GetCPU)();
-/* Get the current CPU usage of BASS. This includes the time taken to
-mix the MOD musics and sample streams. It does not include plain sample
-mixing which is done by the output device (hardware accelerated) or
-DirectSound (emulated). Audio CD playback requires no CPU usage.
-RETURN : The CPU usage percentage */
+float BASSDEF(BASS_GetCPU)();
+/* Get the current CPU usage of BASS. This includes the time taken to mix
+the MOD musics and sample streams, and also the time taken by any user
+DSP functions. It does not include plain sample mixing which is done by
+the output device (hardware accelerated) or DirectSound (emulated). Audio
+CD playback requires no CPU usage.
+RETURN : The CPU usage percentage (floating-point) */
 
 BOOL BASSDEF(BASS_Start)();
 /* Start the digital output. */
@@ -333,18 +455,6 @@ volume : Desired volume level (0-100) */
 int BASSDEF(BASS_GetVolume)();
 /* Get the digital output master volume.
 RETURN : The volume level (0-100, -1=error) */
-
-BOOL BASSDEF(BASS_SlideVolume)(DWORD volume, DWORD period, DWORD mode);
-/* Slide the digital output master volume and/or the CD volume from
-the current level to the target level.
-volume : Target volume (0-100)
-period : Delay (in msec) between each volume step, example: from 0
-         to 100 with 20ms period = 100x20ms = 2 sec total period
-mode   : Digital and/or CD volume flags (BASS_SLIDE_xxx flags)*/
-
-BOOL BASSDEF(BASS_IsSliding)();
-/* Check if the digital output master volume and/or the CD volume
-is sliding. */
 
 BOOL BASSDEF(BASS_Set3DFactors)(float distf, float rollf, float doppf);
 /* Set the factors that affect the calculations of 3D sound.
@@ -405,9 +515,29 @@ vol    : Reverb volume (NULL=don't get it)
 decay  : Decay duration (NULL=don't get it)
 damp   : The damping (NULL=don't get it) */
 
+BOOL BASSDEF(BASS_SetA3DResManager)(DWORD mode);
+/* Set the A3D resource management mode.
+mode   : The mode (A3D_RESMODE_OFF=disable resource management,
+         A3D_RESMODE_DYNAMIC=enable resource manager but looping channels are not managed,
+         A3D_RESMODE_DYNAMIC_LOOPERS=enable resource manager including looping channels,
+         A3D_RESMODE_NOTIFY=plays will fail when there are no available resources) */
+
+DWORD BASSDEF(BASS_GetA3DResManager)();
+/* Get the A3D resource management mode.
+RETURN : The mode (0xffffffff=error) */
+
+BOOL BASSDEF(BASS_SetA3DHFAbsorbtion)(float factor);
+/* Set the A3D high frequency absorbtion factor.
+factor  : Absorbtion factor (0.0=disabled, <1.0=diminished, 1.0=default,
+          >1.0=exaggerated) */
+
+BOOL BASSDEF(BASS_GetA3DHFAbsorbtion)(float *factor);
+/* Retrieve the current A3D high frequency absorbtion factor.
+factor  : The absorbtion factor */
+
 
 HMUSIC BASSDEF(BASS_MusicLoad)(BOOL mem, void *file, DWORD offset, DWORD length, DWORD flags);
-/* Load a music (XM/MOD/S3M/IT/MTM). The amplification and pan
+/* Load a music (MO3/XM/MOD/S3M/IT/MTM). The amplification and pan
 seperation are initially set to 50, use BASS_MusicSetAmplify()
 and BASS_MusicSetPanSep() to adjust them.
 mem    : TRUE = Load music from memory
@@ -420,6 +550,17 @@ RETURN : The loaded music's handle (NULL=error) */
 void BASSDEF(BASS_MusicFree)(HMUSIC handle);
 /* Free a music's resources.
 handle : Music handle */
+
+char *BASSDEF(BASS_MusicGetName)(HMUSIC handle);
+/* Retrieves a music's name.
+handle : Music handle
+RETURN : The music's name (NULL=error) */
+
+DWORD BASSDEF(BASS_MusicGetLength)(HMUSIC handle);
+/* Retrieves the length of a music in patterns (ie. how many "orders"
+there are).
+handle : Music handle
+RETURN : The length of the music (0xFFFFFFFF=error) */
 
 BOOL BASSDEF(BASS_MusicPlay)(HMUSIC handle);
 /* Play a music. Playback continues from where it was last stopped/paused.
@@ -454,16 +595,16 @@ scale  : The scaler (1-256) */
 
 
 HSAMPLE BASSDEF(BASS_SampleLoad)(BOOL mem, void *file, DWORD offset, DWORD length, DWORD max, DWORD flags);
-/* Load a WAV sample. If you're loading a sample with 3D functionality,
-then you should use BASS_GetInfo and BASS_SetInfo to set the default 3D
-parameters. You can also use these two functions to set the sample's
-default frequency/volume/pan/looping.
+/* Load a WAV/MP3/MP2/MP1 sample. If you're loading a sample with 3D
+functionality, then you should use BASS_GetInfo and BASS_SetInfo to set
+the default 3D parameters. You can also use these two functions to set
+the sample's default frequency/volume/pan/looping.
 mem    : TRUE = Load sample from memory
 file   : Filename (mem=FALSE) or memory location (mem=TRUE)
 offset : File offset to load the sample from (only used if mem=FALSE)
 length : Data length (only used if mem=FALSE, 0=use to end of file)
 max    : Maximum number of simultaneous playbacks (1-65535)
-flags  : BASS_SAMPLE_xxx flags (only the LOOP/3D/SOFTWARE/OVER_xxx flags are used)
+flags  : BASS_SAMPLE_xxx flags (only the LOOP/3D/SOFTWARE/VAM/MUTEMAX/OVER_xxx flags are used)
 RETURN : The loaded sample's handle (NULL=error) */
 
 void* BASSDEF(BASS_SampleCreate)(DWORD length, DWORD freq, DWORD max, DWORD flags);
@@ -540,25 +681,41 @@ which is obviously simpler than calling BASS_ChannelStop() 3 times.
 handle : Handle of sample to stop */
 
 
-HSTREAM BASSDEF(BASS_StreamCreate)(DWORD freq, DWORD flags, STREAMPROC *proc);
+HSTREAM BASSDEF(BASS_StreamCreate)(DWORD freq, DWORD flags, STREAMPROC *proc, DWORD user);
 /* Create a user sample stream.
-freq   : Stream playback rate
+freq   : Stream playback rate (100-100000)
 flags  : BASS_SAMPLE_xxx flags (only the 8BITS/MONO/3D flags are used)
 proc   : User defined stream writing function
+user   : The 'user' value passed to the callback function
 RETURN : The created stream's handle (NULL=error) */
 
 HSTREAM BASSDEF(BASS_StreamCreateFile)(BOOL mem, void *file, DWORD offset, DWORD length, DWORD flags);
-/* Create a sample stream from an MP3 or WAV file.
+/* Create a sample stream from an MP3/MP2/MP1 or WAV file.
 mem    : TRUE = Stream file from memory
 file   : Filename (mem=FALSE) or memory location (mem=TRUE)
 offset : File offset of the stream data
 length : File length (0=use whole file if mem=FALSE)
-flags  : BASS_SAMPLE_3D and/or BASS_MP3_LOWQ flags
+flags  : BASS_SAMPLE_3D/BASS_SAMPLE_MONO/BASS_MP3_HALFRATE/BASS_MP3_SETPOS flags
+RETURN : The created stream's handle (NULL=error) */
+
+HSTREAM BASSDEF(BASS_StreamCreateURL)(char *url, DWORD flags, char *save);
+/* Create a sample stream from an MP3/MP2/MP1 or WAV file on the internet,
+optionally saving a local copy to disk.
+url    : The URL (beginning with "http://" or "ftp://")
+flags  : BASS_SAMPLE_3D/BASS_SAMPLE_MONO/BASS_MP3_HALFRATE/BASS_STREAM_RESTRATE flags
+save   : Filename to save the streamed file as locally (NULL=don't save)
 RETURN : The created stream's handle (NULL=error) */
 
 void BASSDEF(BASS_StreamFree)(HSTREAM handle);
 /* Free a sample stream's resources.
-stream : Stream handle */
+handle : Stream handle */
+
+DWORD BASSDEF(BASS_StreamGetLength)(HSTREAM handle);
+/* Retrieves the playback length (in bytes) of a file stream. It's not always
+possible to 100% accurately guess the length of a stream, so the length returned
+may be only an approximation when using some WAV codecs.
+handle : Stream handle 
+RETURN : The length (0xffffffff=error) */
 
 BOOL BASSDEF(BASS_StreamPlay)(HSTREAM handle, BOOL flush, DWORD flags);
 /* Play a sample stream, optionally flushing the buffer first.
@@ -566,8 +723,15 @@ handle : Handle of stream to play
 flush  : Flush buffer contents. If you stop a stream and then want to
          continue it from where it stopped, don't flush it. Flushing
          a file stream causes it to restart from the beginning.
-flags  : BASS_SAMPLE_xxx flags (only affects file streams, and only the
-         LOOP flag is used) */
+flags  : BASS_SAMPLE_LOOP flag (only affects file streams) */
+
+DWORD BASSDEF(BASS_StreamGetFilePosition)(HSTREAM handle, DWORD mode);
+/* Retrieves the file position of the decoding, the download (if streaming from
+the internet), or the end (total length). Obviously only works with file streams.
+handle : Stream handle
+mode   : The position to retrieve (0=decoding, 1=download, 2=end)
+RETURN : The position (0xffffffff=error) */
+
 
 
 BOOL BASSDEF(BASS_CDInit)(char *drive);
@@ -582,19 +746,31 @@ void BASSDEF(BASS_CDFree)();
 BOOL BASSDEF(BASS_CDInDrive)();
 /* Check if there is a CD in the drive. */
 
-BOOL BASSDEF(BASS_CDPlay)(DWORD track, BOOL loop);
+DWORD BASSDEF(BASS_CDGetTracks)();
+/* Retrieves the number of tracks on the CD
+RETURN : The number of tracks (0xffffffff=error) */
+
+BOOL BASSDEF(BASS_CDPlay)(DWORD track, BOOL loop, BOOL wait);
 /* Play a CD track.
 track  : Track number to play (1=first)
-loop   : TRUE = Loop the track */
+loop   : TRUE = Loop the track
+wait   : TRUE = don't return until playback has started (some drives
+                will always wait anyway) */
+
+DWORD BASSDEF(BASS_CDGetTrackLength)(DWORD track);
+/* Retrieves the playback length (in milliseconds) of a cd track.
+track  : The CD track (1=first)
+RETURN : The length (0xffffffff=error) */
 
 
 /* A "channel" can be a playing sample (HCHANNEL), a MOD music (HMUSIC),
 a sample stream (HSTREAM), or the CD (CDCHANNEL). The following
 functions can be used with one or more of these channel types. */
 
-BOOL BASSDEF(BASS_ChannelIsActive)(DWORD handle);
-/* Check if a channel is active (playing).
-handle : Channel handle (HCHANNEL/HMUSIC/HSTREAM, or CDCHANNEL) */
+int BASSDEF(BASS_ChannelIsActive)(DWORD handle);
+/* Check if a channel is active (playing) or stalled.
+handle : Channel handle (HCHANNEL/HMUSIC/HSTREAM, or CDCHANNEL)
+RETURN : 0=not playing, 1=playing, 2=stalled(internet) */
 
 DWORD BASSDEF(BASS_ChannelGetFlags)(DWORD handle);
 /* Get some info about a channel.
@@ -619,7 +795,7 @@ as specified, depending on the accuracy of the device and drivers.
 NOTE: Only the volume can be adjusted for the CD "channel", but not all
 soundcards allow controlling of the CD volume level.
 handle : Channel handle (HCHANNEL/HMUSIC/HSTREAM, or CDCHANNEL)
-freq   : Playback rate (-1=leave current)
+freq   : Playback rate (100-100000, 0=original, -1=leave current)
 volume : Volume (-1=leave current, 0=silent, 100=max)
 pan    : Pan position (-101=current, -100=left, 0=middle, 100=right)
          panning has no effect on 3D channels */
@@ -677,11 +853,12 @@ vel    : velocity of the sound (NULL=don't retrieve it) */
 
 BOOL BASSDEF(BASS_ChannelSetPosition)(DWORD handle, DWORD pos);
 /* Set the current playback position of a channel.
-handle : Channel handle (HCHANNEL/HMUSIC, or CDCHANNEL)
+handle : Channel handle (HCHANNEL/HMUSIC/HSTREAM, or CDCHANNEL)
 pos    : the position
-	if HCHANNEL: position in bytes
-	if HMUSIC: LOWORD=order HIWORD=row ... use MAKELONG(order,row)
-	if CDCHANNEL: position in milliseconds from start of track */
+    if HCHANNEL: position in bytes
+    if HMUSIC: LOWORD=order HIWORD=row ... use MAKELONG(order,row)
+    if HSTREAM: position in bytes, file streams only (MP3/MP2/MP1 require BASS_MP3_SETPOS)
+    if CDCHANNEL: position in milliseconds from start of track */
 
 DWORD BASSDEF(BASS_ChannelGetPosition)(DWORD handle);
 /* Get the current playback position of a channel.
@@ -697,18 +874,40 @@ DWORD BASSDEF(BASS_ChannelGetLevel)(DWORD handle);
 handle : Channel handle (HMUSIC/HSTREAM)
 RETURN : LOWORD=left level (0-128) HIWORD=right level (0-128) (0xffffffff=error) */
 
-HSYNC BASSDEF(BASS_ChannelSetSync)(DWORD handle, DWORD type, DWORD param, SYNCPROC *proc);
+DWORD BASSDEF(BASS_ChannelGetData)(DWORD handle, void *buffer, DWORD length);
+/* Retrieves upto "length" bytes of the channel's current sample data. This is
+useful if you wish to "visualize" the sound.
+handle : Channel handle (HMUSIC/HSTREAM)
+buffer : Location to write the sample data
+length : Number of bytes wanted
+RETURN : Number of bytes actually written to the buffer (0xffffffff=error) */
+
+HSYNC BASSDEF(BASS_ChannelSetSync)(DWORD handle, DWORD type, DWORD param, SYNCPROC *proc, DWORD user);
 /* Setup a sync on a channel. Multiple syncs may be used per channel.
-handle : Channel handle (currently there are only HMUSIC syncs)
+handle : Channel handle
 type   : Sync type (BASS_SYNC_xxx type & flags)
 param  : Sync parameters (see the BASS_SYNC_xxx type description)
 proc   : User defined callback function
+user   : The 'user' value passed to the callback function
 RETURN : Sync handle (NULL=error) */
 
 BOOL BASSDEF(BASS_ChannelRemoveSync)(DWORD handle, HSYNC sync);
 /* Remove a sync from a channel
-handle : Channel handle (HMUSIC)
+handle : Channel handle
 sync   : Handle of sync to remove */
+
+HDSP BASSDEF(BASS_ChannelSetDSP)(DWORD handle, DSPPROC *proc, DWORD user);
+/* Setup a user DSP function on a channel. When multiple DSP functions
+are used on a channel, they are called in the order that they were added.
+handle : Channel handle (HMUSIC/HSTREAM)
+proc   : User defined callback function
+user   : The 'user' value passed to the callback function
+RETURN : DSP handle (NULL=error) */
+
+BOOL BASSDEF(BASS_ChannelRemoveDSP)(DWORD handle, HDSP dsp);
+/* Remove a DSP function from a channel
+handle : Channel handle (HMUSIC/HSTREAM)
+dsp    : Handle of DSP to remove */
 
 BOOL BASSDEF(BASS_ChannelSetEAXMix)(DWORD handle, float mix);
 /* Set the wet(reverb)/dry(no reverb) mix ratio on the channel. By default

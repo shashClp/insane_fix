@@ -89,6 +89,13 @@ void SPHERE_Layer2(float tick)
 
 void SPHERE_Scene1(float tick)
 {
+    //-----------------------------------------------------------------------------------
+    // shash: Framerate fix
+    static float last_tick = tick;
+    float tick_delta = tick - last_tick;
+    last_tick = tick;
+    //-----------------------------------------------------------------------------------
+
 TMatrix cam;
 
   MISC_MemSet4 (GBL_Bits,0,GBL_Size);
@@ -104,7 +111,7 @@ TMatrix cam;
       VIEW3D_Project (vp,vr);    
       float px = vp.x+100.0f*sin(SPHERE_Angles[i]*M_PIx2/360);
       float py = vp.y+60.0f*cos(SPHERE_Angles[i]*M_PIx2/360);
-      SPHERE_Angles[i]+=SPHERE_Rot[i];
+      SPHERE_Angles[i]+=SPHERE_Rot[i] * tick_delta*1000.f;
       PutPartRGB (GBL_Bits,(DWORD *)SPHERE_flares->bits,px,py,(long)(SPHERE_flaregrow+rand()%10+(32.0f*(1.0f-vp.z))));
     }
   }  

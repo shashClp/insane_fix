@@ -1,2 +1,1 @@
-nasm rozo
-
+nasmw -fwin32 rozo.asm

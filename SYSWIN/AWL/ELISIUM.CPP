@@ -3,9 +3,9 @@
 
 #include <windows.h>
 
-bool  ELISIUM_Sound;
-bool  ELISIUM_Looped;
-bool  ELISIUM_MMX;
-DWORD ELISIUM_SoundFlags;
-DWORD ELISIUM_SoundQuality;
-DWORD ELISIUM_Priority;
+bool  ELISIUM_OriginalRatio = true;
+bool  ELISIUM_Bilinear = true;
+bool  ELISIUM_MMX = true;
+DWORD ELISIUM_SoundFlags = 4;
+DWORD ELISIUM_SoundQuality = 44100;
+DWORD ELISIUM_Priority = 4;

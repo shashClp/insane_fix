@@ -161,7 +161,7 @@ long TBlob_R_GetPrimaryIntersection (TVertex  &Dir,TReal &T0,TReal &T1)
     {
         RVTX_Set (Check,ActiveBlob->CamPos.x + TMin0*Dir.x,ActiveBlob->CamPos.y + TMin0*Dir.y,ActiveBlob->CamPos.z + TMin0*Dir.z);
         Dist1 = 0;
-        for (i = 0; i < ActiveBlob->NumComponents; i++)
+        for (long i = 0; i < ActiveBlob->NumComponents; i++)
         {
   //         Dist1 += ActiveBlob->Dens[i] / (RVTX_Distance (Check,ActiveBlob->Pl1[i]->General.Position));
              Dist1 += ActiveBlob->Dens[i] / (RVTX_SemiDistance (Check,ActiveBlob->Pl1[i]->General.Position));
@@ -215,7 +215,7 @@ long TBlob_R_GetSecondaryIntersection (TVertex  &Pos,TVertex  &Dir,TReal &T0,TRe
     {
         RVTX_Set (Check,Pos.x + TMin0*Dir.x,Pos.y + TMin0*Dir.y,Pos.z + TMin0*Dir.z);
         Dist1 = 0;
-        for (i = 0; i < ActiveBlob->NumComponents; i++)
+        for (long i = 0; i < ActiveBlob->NumComponents; i++)
         {
          Dist1 += ActiveBlob->Dens[i] / (RVTX_Distance (Check,ActiveBlob->Pl1[i]->General.Position));
         }
@@ -274,7 +274,7 @@ long TBlob_R_GetShadowIntersection (TVertex  &Pos,TVertex  &Dir3)
     {
         RVTX_Set (Check,Pos.x + TMin0*Dir2.x,Pos.y + TMin0*Dir2.y,Pos.z + TMin0*Dir2.z);
         Dist1 = 0;
-        for (i = 0; i < ActiveBlob->NumComponents; i++)
+        for (long i = 0; i < ActiveBlob->NumComponents; i++)
         {
          Dist1 += ActiveBlob->Dens[i] / (RVTX_Distance (Check,ActiveBlob->Pl1[i]->General.Position));
         }

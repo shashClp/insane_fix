@@ -71,7 +71,7 @@ void DEFAULT_Flip()
     }
     // Flip
     PBEGIN(0)
-    VIEW_Flip();    
+    //VIEW_Flip();    
     PEND
   }    
 
@@ -89,6 +89,10 @@ bool DEFAULT_Init()
 {
   if (!VIDEO_Init()) return false;
 
+  // shash: Hack to force to 320x240
+  DWORD VIDEO_ScreenWidth = 320;
+  DWORD VIDEO_ScreenHeight = 240;
+
   if ((View = VIEW_Init (VIDEO_ScreenWidth,VIDEO_ScreenHeight,VIDEO_ScreenWidth/2,VIDEO_ScreenHeight/2,VIDEO_ScreenWidth,NULL))==NULL) return false;
   if ((View3D = VIEW3D_Init (VIDEO_ScreenWidth-2,VIDEO_ScreenHeight-40,(float)VIDEO_ScreenWidth/2,(float)VIDEO_ScreenHeight/2,10.0f,10000.0f,60.0f,1.0f))==NULL) return false;
 
@@ -103,7 +107,7 @@ bool DEFAULT_Init()
   VIEWZ_Set(ViewZ);
 #endif
   
-	if (ELISIUM_Sound) MUSIC_Init(ELISIUM_SoundQuality, ELISIUM_SoundFlags);
+  MUSIC_Init(ELISIUM_SoundQuality, ELISIUM_SoundFlags);
   CONCAT_Init("insane.adf",true);
   FRAMERATE_Init();
   PROFILE_Init(16);

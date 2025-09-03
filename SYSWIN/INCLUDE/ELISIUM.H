@@ -4,8 +4,8 @@
 #ifndef AWL_ELISIUM
 #define AWL_ELISIUM
 
-extern bool  ELISIUM_Sound;
-extern bool  ELISIUM_Looped;
+extern bool  ELISIUM_OriginalRatio;
+extern bool  ELISIUM_Bilinear;
 extern bool  ELISIUM_MMX;
 extern DWORD ELISIUM_SoundFlags;
 extern DWORD ELISIUM_SoundQuality;

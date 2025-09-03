@@ -59,7 +59,7 @@ void TName (TMatrix &m,TObject &obj)                                            
             VIEW3D_Project (vp[j],vp[j]);                                               \
           }                                                                             \
           TClipBeforePaint                                                              \
-          for (j=2; j<OBJ3DPAINT_TC->count; j++)                                        \
+          for (DWORD j=2; j<OBJ3DPAINT_TC->count; j++)                                        \
           {                                                                             \
             TClipAfter                                                                  \
           }                                                                             \

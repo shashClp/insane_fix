@@ -359,7 +359,7 @@ void TWorld_Init ( TVertex Pos)
         Ray_Active_Object_Internal ( Cmt );
         Ray_PrecalcIntersection ( Pos );
     }
-    for (Cmt = 0 ; Cmt <= ActiveWorld->Num_Of_Obj; Cmt++) {ActiveWorld->ShadowList[Cmt] = Cmt;}
+    for (long Cmt = 0 ; Cmt <= ActiveWorld->Num_Of_Obj; Cmt++) {ActiveWorld->ShadowList[Cmt] = Cmt;}
     ActiveWorld->Precalculated = 1;
 }
 

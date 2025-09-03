@@ -32,6 +32,7 @@ void *GetMem (DWORD size)
     ERR("Getting mem for size %i",size);
     return NULL;
   }
+  memset(punter, 0, size);
   DWORD t = _msize (punter);
   TotalMemAllocated+=t;
   MemNotFreed+=t;
@@ -46,6 +47,8 @@ void *GetMem (DWORD size)
 
 void FreeMem (void *punter)
 {
+    return;
+
   if (punter==NULL)
   {
     ERR("Freeing NULL pointer?");

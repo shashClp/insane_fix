@@ -31,7 +31,8 @@ HDC dc;
   va_start (DEBUG_VaList,str);
   vsprintf (DEBUG_Buffer1,str,DEBUG_VaList);  
   va_end (DEBUG_VaList);
-
+/*
+  // shash: No support on openGL backend
   hr = VIDEO_Primary->GetDC (&dc);
   if (hr==DDERR_SURFACELOST) return;
   else if (ERRDX("Getting DC in DEBUG")) return;
@@ -46,4 +47,5 @@ HDC dc;
   hr = VIDEO_Primary->ReleaseDC(dc);     
   if (hr==DDERR_SURFACELOST) return;
   else if (ERRDX("Releasing DC in DEBUG")) return;
+*/
 }

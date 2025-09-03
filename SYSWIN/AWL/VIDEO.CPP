@@ -12,17 +12,17 @@
 #include <defines.h>
 #include <misc.h>
 #include <video.h>
+#include <gl/gl.h>
 
 bool VIDEO_Windowed;
 bool VIDEO_EraseBackGround=true;
 DWORD VIDEO_ScreenWidth;
 DWORD VIDEO_ScreenHeight;
 BYTE VIDEO_ScreenBpp;
-DWORD VIDEO_ScreenDriver;
-LPDIRECTDRAW4 VIDEO_DD;
-LPDIRECTDRAWSURFACE4 VIDEO_Primary;
-LPDIRECTDRAWSURFACE4 VIDEO_BackBuffer;
-LPDIRECTDRAWCLIPPER VIDEO_Clipper;
+extern DWORD *GBL_Bits;
+
+HDC hDC;
+HGLRC hRC;
 
 typedef struct {
   GUID guid;
@@ -41,34 +41,71 @@ TDDDevices VIDEO_DeviceDesc[16];
 DWORD VIDEO_ModesNum[16];
 TDDModes VIDEO_ModeDesc[16][32];
 
+unsigned int texID = -1;
+void VIDEO_NotifyResize (DWORD width, DWORD height)
+{
+    if (width != 0)
+        VIDEO_ScreenWidth  = width;
+
+    if (height != 0)
+        VIDEO_ScreenHeight = height;
+}
+
 void VIDEO_Flip()
 {
-  if (!IsIconic (HWnd))
-  {  
-    if (VIDEO_Windowed)
+    const unsigned int srcWidth = 320;
+    const unsigned int srcHeight = 240;
+
+    unsigned int dstWidth  = VIDEO_ScreenWidth;
+    unsigned int dstHeight = VIDEO_ScreenHeight;
+    unsigned int offsetX   = 0;
+    unsigned int offsetY   = 0;
+
+    if (ELISIUM_OriginalRatio)
     {
-      RECT r,rs;
-      DDBLTFX ddbltfx;
-      ZeroMemory (&ddbltfx,sizeof(DDBLTFX));
-      ddbltfx.dwSize = sizeof(DDBLTFX);
-      GetWindowRect (HWnd,&rs);
-      GetClientRect (HWnd,&r);
-      OffsetRect (&r,rs.left+4,rs.top+23);
-      hr = VIDEO_Primary->Blt (&r,VIDEO_BackBuffer,NULL,DDBLT_DDFX,&ddbltfx);
-      if (hr == DDERR_SURFACELOST)
-      {
-        VIDEO_BackBuffer->Restore();        
-        VIDEO_Primary->Restore();        
-      } else
-        if (ERRDX ("Video flip!")) return;
-    } else {
-      hr = VIDEO_Primary->Flip(NULL,DDFLIP_WAIT);
-      if (hr == DDERR_SURFACELOST)
-        VIDEO_Primary->Restore();
-      else
-        if (ERRDX ("Video flip!")) return;
-    }  
-  }
+        // First thing, look for main axis
+        float srcRatio = srcWidth / (float)srcHeight;
+        float dstRatio = dstWidth / (float)dstHeight;
+
+        // Destination wider than source
+        if (dstRatio > srcRatio)
+        {
+            dstWidth = (unsigned int)floorf( (VIDEO_ScreenHeight/(float)srcHeight)*srcWidth + 0.5f );
+            dstWidth = dstWidth > VIDEO_ScreenWidth ? VIDEO_ScreenWidth : dstWidth;
+            offsetX  = (VIDEO_ScreenWidth-dstWidth)>>1;
+        }
+        // Destination taller than source
+        else
+        {            
+            dstHeight = (unsigned int)floorf( (VIDEO_ScreenWidth/(float)srcWidth)*srcHeight + 0.5f );
+            dstHeight = dstHeight > VIDEO_ScreenHeight ? VIDEO_ScreenHeight : dstHeight;
+            offsetY   = (VIDEO_ScreenHeight-dstHeight)>>1;
+        }
+    }
+
+    glViewport(offsetX, offsetY, dstWidth, dstHeight);
+	glClear (GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+	glBindTexture	(GL_TEXTURE_2D, texID);
+	glTexImage2D	(GL_TEXTURE_2D, 0, 4, 320, 240, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, GBL_Bits);
+
+
+	glColor3f(1.f, 1.f, 1.0f);
+	glBegin (GL_QUADS);
+		glTexCoord2f(0.f, 1.f);
+		glVertex2f (-1.f,-1.f);
+
+		glTexCoord2f(0.f, 0.f);
+		glVertex2f (-1.f, 1.f);
+
+		glTexCoord2f(1.f, 0.f);
+		glVertex2f  (1.f, 1.f);
+
+		glTexCoord2f(1.f, 1.f);
+		glVertex2f ( 1.f, -1.f);
+	glEnd ();
+	
+	SwapBuffers (hDC);
 }
 
 bool VIDEO_DefaultSetupVideoMode (DWORD &width,DWORD &height,BYTE &bpp,DWORD &flags,DWORD &driver)
@@ -88,9 +125,9 @@ bool VIDEO_DefaultSetupVideoMode (DWORD &width,DWORD &height,BYTE &bpp,DWORD &fl
   LPSETUPGetRes SETUP_GetResolution;  
   LPSETUPGetD SETUP_GetDriver;
   LPSETUPGetB SETUP_GetFullScreen;
-  LPSETUPGetB SETUP_GetSound;
-  LPSETUPGetB SETUP_GetLooped;
-  LPSETUPGetD SETUP_GetSoundFlags;
+  LPSETUPGetB SETUP_GetOriginalRatio;   // shash: This points to GetSound, resource hack to get stretch support
+  LPSETUPGetB SETUP_GetBilinear;        // shash: This points to GetLooped, it's a resource hack to be able to to have a bilinear option
+  LPSETUPGetD SETUP_GetSoundFlags;      
   LPSETUPGetD SETUP_GetSoundQuality;
   LPSETUPGetB SETUP_GetMMX;
   LPSETUPGetD SETUP_GetPriority;
@@ -108,8 +145,8 @@ bool VIDEO_DefaultSetupVideoMode (DWORD &width,DWORD &height,BYTE &bpp,DWORD &fl
       (!DLL_Call (hDLL,(void **)&SETUP_AddResolution,"SETUP_AddResolution")) ||
       (!DLL_Call (hDLL,(void **)&SETUP_GetResolution,"SETUP_GetResolution")) ||
       (!DLL_Call (hDLL,(void **)&SETUP_GetFullScreen,"SETUP_GetFullScreen")) ||
-      (!DLL_Call (hDLL,(void **)&SETUP_GetLooped,"SETUP_GetLooped")) ||
-      (!DLL_Call (hDLL,(void **)&SETUP_GetSound,"SETUP_GetSound")) ||
+      (!DLL_Call (hDLL,(void **)&SETUP_GetBilinear,"SETUP_GetLooped")) ||
+      (!DLL_Call (hDLL,(void **)&SETUP_GetOriginalRatio,"SETUP_GetSound")) ||
       (!DLL_Call (hDLL,(void **)&SETUP_GetSoundQuality,"SETUP_GetSoundQuality")) ||
       (!DLL_Call (hDLL,(void **)&SETUP_GetSoundFlags,"SETUP_GetSoundFlags")) ||
       (!DLL_Call (hDLL,(void **)&SETUP_GetMMX,"SETUP_GetMMX")) ||
@@ -122,22 +159,22 @@ bool VIDEO_DefaultSetupVideoMode (DWORD &width,DWORD &height,BYTE &bpp,DWORD &fl
   LOG ("Transfering info to DLL. DeviceNumber %i.",VIDEO_DeviceNum);
   for (DWORD i=0; i<VIDEO_DeviceNum; i++)
   {  
-		DWORD k=0;  
+    DWORD k=0;  
     SETUP_AddDriver (VIDEO_DeviceDesc[i].desc);
     for (DWORD j=0; j<VIDEO_ModesNum[i]; j++)
-		{			
-			if ((VIDEO_ModeDesc[i][j].width==320) && (VIDEO_ModeDesc[i][j].height==240))
+		{		
+			if (VIDEO_ModeDesc[i][j].bpp == 32)
 			{
 				k++;
 				SETUP_AddResolution (VIDEO_ModeDesc[i][j].width,VIDEO_ModeDesc[i][j].height,VIDEO_ModeDesc[i][j].bpp);
 			}
 		}
 		if (k==0)
-			SETUP_AddResolution (0,0,0);
-  }  
-  
+			SETUP_AddResolution (1024, 768, 32);
+  }
+
   LOG ("Calling DLL functions");
-  if (!SETUP_Init(driver,width,height,bpp,!TestBit(flags,VIDEO_WINDOW),false,true,MMXInit))
+  if (!SETUP_Init(driver,width,height,bpp,!TestBit(flags,VIDEO_WINDOW),true,true,MMXInit))
   {
     LOG ("CANCELED Display Mode Selection");      
     return false;
@@ -146,17 +183,9 @@ bool VIDEO_DefaultSetupVideoMode (DWORD &width,DWORD &height,BYTE &bpp,DWORD &fl
   driver = SETUP_GetDriver();
   SETUP_GetResolution(width,height,bpp);
   if (!SETUP_GetFullScreen()) flags = VIDEO_WINDOW; else flags = 0;
-	if (width==0)
-	{
-		flags = VIDEO_WINDOW;
-	}
-	if (TestBit (flags,VIDEO_WINDOW))
-	{
-		width = 320;
-		height = 240;
-	}
-  ELISIUM_Sound = SETUP_GetSound();
-  ELISIUM_Looped = SETUP_GetLooped();
+
+  ELISIUM_OriginalRatio = SETUP_GetOriginalRatio();
+  ELISIUM_Bilinear = SETUP_GetBilinear();
   ELISIUM_SoundFlags = SETUP_GetSoundFlags();
   ELISIUM_SoundQuality = SETUP_GetSoundQuality();
   ELISIUM_MMX = SETUP_GetMMX();
@@ -194,11 +223,12 @@ HRESULT WINAPI EnumModesCallback(LPDDSURFACEDESC2 surf,LPVOID lpContext)
  
 bool VIDEO_SetUp (DWORD width,DWORD height,BYTE bpp,DWORD flags)
 {
-DWORD driver=0;
+	LPDIRECTDRAW4 VIDEO_DD;
+	DWORD driver=0;
 
   SEC_START("Video Init");
 
-  if TestBit(flags,VIDEO_MENU)
+  if (TestBit(flags,VIDEO_MENU))
   {
     SEC_START("Video devices");
     VIDEO_DeviceNum = 0;
@@ -231,166 +261,81 @@ DWORD driver=0;
   VIDEO_ScreenWidth = width;
   VIDEO_ScreenHeight = height;  
   VIDEO_ScreenBpp = bpp;
-  VIDEO_ScreenDriver = driver;
+  //VIDEO_ScreenDriver = driver;
   VIDEO_Windowed = TestBit(flags,VIDEO_WINDOW);
 
   SEC_END();
   return true;
 }
 
-bool VIDEO_Init()
+// Select the pixel format for a given device context
+void SetDCPixelFormat(HDC hDC)
+{
+	static PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL |
+		PFD_DOUBLEBUFFER,
+		PFD_TYPE_RGBA,
+		VIDEO_ScreenBpp,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,
+		24,                                     // Size of depth buffer
+		0,0,
+		PFD_MAIN_PLANE,
+		0,0,0,0 };
+
+	int nPixelFormat = ChoosePixelFormat(hDC, &pfd);
+
+	if (SetPixelFormat(hDC, nPixelFormat, &pfd) == FALSE)
+	{
+        MessageBox(NULL, "Failed to set up pixel format, aborting", "Error", MB_ICONERROR);
+        ExitProcess(0);
+	}
+}
+
+bool VIDEO_Init ()
 {  
-  if (VIDEO_Windowed)   
-  {        
-    VIDEO_EraseBackGround = true;
+	hDC = GetDC(HWnd);
 
-    LPDIRECTDRAW dd;
-    if (VIDEO_DeviceDesc[VIDEO_ScreenDriver].guid.Data1==0)
-      hr = DirectDrawCreate (NULL,&dd,NULL);
+	SetDCPixelFormat(hDC);
+
+	hRC = wglCreateContext(hDC);
+	wglMakeCurrent(hDC, hRC);
+	
+	glMatrixMode	(GL_PROJECTION);
+	glLoadIdentity	();
+
+	glMatrixMode	(GL_MODELVIEW);
+	glLoadIdentity	();	
+
+	glEnable		(GL_TEXTURE_2D);
+	glGenTextures	(1, &texID);
+	glBindTexture	(GL_TEXTURE_2D, texID);
+
+    if (ELISIUM_Bilinear)
+    {
+	    glTexParameteri	(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	    glTexParameteri	(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    }
     else
-      hr = DirectDrawCreate (&VIDEO_DeviceDesc[VIDEO_ScreenDriver].guid,&dd,NULL);
-    if (ERRDX ("DirectDrawCreate")) return false;
-    hr = dd->QueryInterface (IID_IDirectDraw4,(void **)&VIDEO_DD);
-    dd->Release();
-    dd = NULL;
-    if (ERRDX ("DirectDrawCreate")) return false;
-
-    hr = VIDEO_DD->SetCooperativeLevel (NULL,DDSCL_NORMAL);
-    if (ERRDX ("SetCooperativeLevel")) 
     {
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;    
-    }
-    DDSURFACEDESC2 ddsd;
-    ZeroMemory (&ddsd,sizeof(DDSURFACEDESC2));
-    ddsd.dwSize = sizeof(DDSURFACEDESC2);
-    ddsd.dwFlags = DDSD_CAPS;
-    ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-    hr = VIDEO_DD->CreateSurface(&ddsd,&VIDEO_Primary,NULL);
-    if (ERRDX ("CreateSurface Primary")) 
-    {
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;    
+	    glTexParameteri	(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	    glTexParameteri	(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     }
 
-    ZeroMemory (&ddsd,sizeof(DDSURFACEDESC2));
-    ddsd.dwSize = sizeof(DDSURFACEDESC2);
-    ddsd.dwFlags = DDSD_CAPS | DDSD_WIDTH | DDSD_HEIGHT;
-    ddsd.dwWidth = VIDEO_ScreenWidth;
-    ddsd.dwHeight = VIDEO_ScreenHeight;   
-    ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
-    hr = VIDEO_DD->CreateSurface(&ddsd,&VIDEO_BackBuffer,NULL);
-    if (ERRDX ("CreateSurface BackBuffer")) 
-    {
-      VIDEO_Primary->Release();
-      VIDEO_Primary = NULL;
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
+	glClearColor(0.f, 0.f, 0.f, 0.f);
 
-    hr = VIDEO_DD->CreateClipper (0,&VIDEO_Clipper,NULL);
-    if (ERRDX ("CreateClipper")) 
-    {
-      VIDEO_BackBuffer->Release();
-      VIDEO_BackBuffer = NULL;
-      VIDEO_Primary->Release();
-      VIDEO_Primary = NULL;
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
-
-    VIDEO_Clipper->SetHWnd (0,HWnd);
-    VIDEO_Primary->SetClipper (VIDEO_Clipper);
-
-    RECT r,rs;
-    GetWindowRect (HWnd,&rs);
-    GetClientRect (HWnd,&r);
-    long w = (rs.right-rs.left)-(r.right-r.left);
-    long h = (rs.bottom-rs.top)-(r.bottom-r.top);
-    SetWindowPos (HWnd,NULL,0,0,VIDEO_ScreenWidth+w,VIDEO_ScreenHeight+h,SWP_NOZORDER | SWP_NOMOVE);    
-    VIDEO_EraseBackGround = false;
-  } else {
-    VIDEO_EraseBackGround = true;
-
-    LPDIRECTDRAW dd;
-    hr = DirectDrawCreate (&VIDEO_DeviceDesc[VIDEO_ScreenDriver].guid,&dd,NULL);
-    if (ERRDX ("DirectDrawCreate")) return false;
-    hr = dd->QueryInterface (IID_IDirectDraw4,(void **)&VIDEO_DD);
-    dd->Release();
-    dd = NULL;
-    if (ERRDX ("DirectDrawCreate")) return false;
-
-    hr = VIDEO_DD->SetCooperativeLevel (HWnd,DDSCL_FULLSCREEN | DDSCL_EXCLUSIVE);
-    if (ERRDX ("SetCooperativeLevel")) 
-    {
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
-
-    hr = VIDEO_DD->SetDisplayMode (VIDEO_ScreenWidth,VIDEO_ScreenHeight,VIDEO_ScreenBpp,0,0);
-    if (ERRDX ("SetDisplayMode")) 
-    {
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
-
-    DDSURFACEDESC2 ddsd;
-    ZeroMemory (&ddsd,sizeof(DDSURFACEDESC2));
-    ddsd.dwSize = sizeof(DDSURFACEDESC2);
-    ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;    
-    ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-    ddsd.dwBackBufferCount = 2;
-    hr = VIDEO_DD->CreateSurface(&ddsd,&VIDEO_Primary,NULL);
-    if (ERRDX ("CreateSurface Primary")) 
-    {
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
-
-    DDSCAPS2 ddscaps;
-    ZeroMemory (&ddscaps,sizeof(DDSCAPS2));
-    ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
-    hr = VIDEO_Primary->GetAttachedSurface (&ddscaps,&VIDEO_BackBuffer);
-    if (ERRDX ("Getting BackBuffer")) 
-    {
-      VIDEO_Primary->Release();
-      VIDEO_Primary = NULL;
-      VIDEO_DD->Release();
-      VIDEO_DD = NULL;
-      return false;        
-    }
-
-    VIDEO_EraseBackGround = false;
-  }
-
-  return true;
+	return true;
 }
 
 void VIDEO_Close ()
 {  
-  if (VIDEO_Windowed)
-  { 
-    VIDEO_Primary->Release();
-    VIDEO_Primary=NULL;
-    VIDEO_BackBuffer->Release();
-    VIDEO_BackBuffer=NULL;
-    VIDEO_Clipper->Release();    
-    VIDEO_Clipper=NULL;
-    VIDEO_DD->Release();
-    VIDEO_DD=NULL;
-  } else {
-    VIDEO_Primary->Release();
-    VIDEO_Primary=NULL;
-    VIDEO_DD->Release();
-    VIDEO_DD=NULL;
-  }  
+	ReleaseDC (HWnd, hDC);
+	wglMakeCurrent(hDC,NULL);
+	wglDeleteContext(hRC);
+
+	ShowCursor(TRUE);
 }
 
 RECT VIDEO_RectOriginal;

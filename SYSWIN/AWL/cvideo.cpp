@@ -294,7 +294,7 @@ void CVideo::RFrame2Video(tRFrame Orig,char* Dest)
 
   //Vert.Interpolation 1
   DestPtr = (Dest+(RAW_X*4));
-  for(j=0;j<RAW_Y;j++)
+  for(int j=0;j<RAW_Y;j++)
   {
      for(int i=0;i<(RAW_X*2);i++)
        *(DestPtr++) = (((*(DestPtr-320*2)+*(DestPtr+320*2))<<1)+ 
@@ -305,7 +305,7 @@ void CVideo::RFrame2Video(tRFrame Orig,char* Dest)
 
   //Vert.Interpolation 2
   DestPtr = (Dest+(RAW_X*2));
-  for(j=0;j<(RAW_Y*2);j++)
+  for(int j=0;j<(RAW_Y*2);j++)
   {
      for(int i=0;i<(RAW_X*2);i++)
       *(DestPtr++) = (*(DestPtr-(RAW_X*2))+*(DestPtr+(RAW_X*2))) >> m_iInterlace;

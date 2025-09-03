@@ -76,7 +76,18 @@ void CELULA_RTZ(float iTick)
   RotoZoom_Texel(iTick,1.0+sin(iTick)*0.1,
 	  160.0+sin(iTick)*20.0,120.0,
 	  GBL_Bits,(DWORD*)img32ADNbk->bits);
-  CELULA_Move();
+
+  //-----------------------------------------------------------------------------------
+  // shash: Framerate fix
+  static DWORD lastTime = GetTickCount();
+  DWORD currentTime = GetTickCount();
+  if (currentTime-lastTime > 16)
+  {
+      CELULA_Move();
+      lastTime = currentTime;
+  }
+  //-----------------------------------------------------------------------------------
+  
   CircPlasma(GBL_Bits);
 };
 
@@ -138,7 +149,7 @@ void CELULA_RTZI_Action7(float iTick)
 
 void CELULA_RTZI(float iTick)
 {
-  CELULA_RTZ(iTick);
+    CELULA_RTZ(iTick);
 
 	long iFact = 0;
 
@@ -209,9 +220,18 @@ void CELULA_ActionAnaconda(float iTick)
 
 void CELULA_Play(float iTick)
 {
-  CELULA_Move();
-  CircPlasma((DWORD*)img32Tmp->bits);
-
+  //-----------------------------------------------------------------------------------
+  // shash: Framerate fix
+  static DWORD lastTime = GetTickCount();
+  DWORD currentTime = GetTickCount();
+  if (currentTime-lastTime > 16)
+  {
+    CELULA_Move();
+    CircPlasma((DWORD*)img32Tmp->bits);
+    lastTime = currentTime;
+  }
+  //-----------------------------------------------------------------------------------
+  
   RotoZoomA(0.0,0.8,155.0,128.0-iTick*80.0,(char *)img8Tmp->bits,(char *)CELULA_who->bits);
 
   MISC_MemCpy4(GBL_Bits,img32Tmp->bits,GBL_Size);
@@ -233,9 +253,18 @@ void CELULA_Play(float iTick)
 
 void CELULA_PlayMtx(float iTick)
 {
+    //-----------------------------------------------------------------------------------
+    // shash: Framerate fix
+    static DWORD lastTime = GetTickCount();
+    DWORD currentTime = GetTickCount();
+    if (currentTime-lastTime > 16)
+    {
+        CELULA_Move();
+        CircPlasma((DWORD*)img32Tmp->bits);
+        lastTime = currentTime;
+    }
+    //-----------------------------------------------------------------------------------
 
-	CELULA_Move();
-  CircPlasma((DWORD*)img32Tmp->bits);
 	MISC_MemCpy4(GBL_Bits,img32Tmp->bits,GBL_Size);
 
 	RotoZoomA_Texel(0.0,0.8,155.0,128.0-iTick*(-120.0),(char *)img8Tmp->bits,(char *)CELULA_who->bits);
@@ -477,11 +506,11 @@ void Ini_CircPlasma()
 
   for(int i=0;i<256;i++)
    seno[i]=(sin(pi*i/256)*130)+128;
-  for(i=0;i<256;i++)
+  for(int i=0;i<256;i++)
    for(int ii=0;ii<256;ii++)
     campana[ii][i]=(int)(-floor(seno[i]*seno[ii]))>>8;
 
-  for(i=0;i<256;i++)
+  for(int i=0;i<256;i++)
    for(int ii=0;ii<256;ii++)
     if(campana[i][ii]==0)
      campana[i][ii]=255;

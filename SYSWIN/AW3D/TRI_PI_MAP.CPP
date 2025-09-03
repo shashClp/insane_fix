@@ -7,6 +7,8 @@
 #include <tri.h>
 #include "tri.inc"
 
+#pragma warning (disable:4731)
+
 void TRI_Function_SlopeValues_PI_MAP (TTRI_Edge &edge)
 {
   edge.du = edge.valS2->v1-edge.valS1->v1;

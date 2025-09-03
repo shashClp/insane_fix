@@ -146,7 +146,7 @@ void BLUR_PutEstels ()
     BLUR_PutEstel (x,y,col);
   }
 
-  for (i=0; i<50; i++)
+  for (DWORD i=0; i<50; i++)
   {
     float BLUR_Angle3=(float)i;
     int r =(int)(128.0+i+(63.0*sin(BLUR_Estels[0].r*M_ToRad)));

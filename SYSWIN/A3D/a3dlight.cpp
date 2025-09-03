@@ -71,7 +71,9 @@ WORD CA3D_A3D::GetLightNum(char *lightname)
 {
   if (!numLights) return 0xffff;
 
-  for(WORD i=0; i<numLights; i++)
+  WORD i = 0;
+
+  for(i=0; i<numLights; i++)
     if (!stricmp(light[i].name,lightname)) break;
 
   return i;

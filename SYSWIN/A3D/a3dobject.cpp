@@ -196,7 +196,9 @@ WORD CA3D_A3D::GetObjNum(char *objname)
 {
   if (!numObjs) return 0xffff;
 
-  for(WORD i=0; i<numObjs; i++)
+  WORD i = 0;
+
+  for(i=0; i<numObjs; i++)
     if (!stricmp(object[i].name,objname)) break;
 
   return i;
@@ -240,7 +242,7 @@ TObject* CA3D_A3D::GetRGBWorldObject (WORD n, DWORD r, DWORD g, DWORD b)
 	RGB_Set(col,r,g,b);
 	TFace *f = obj->face;
 	TPlane *p = obj->plane;
-	for (i=0; i<obj->numface; i++) {
+	for (WORD i=0; i<obj->numface; i++) {
 		PLA_CalcABCD(*p,v[f->a],v[f->b],v[f->c]);
 		f->i = (TTexture *) col;
 		p++;
@@ -269,7 +271,7 @@ TObject* CA3D_A3D::GetWorldObject (WORD n)
 	}
 	TFace *f = obj->face;
 	TPlane *p = obj->plane;
-	for (i=0; i<obj->numface; i++) {
+	for (WORD i=0; i<obj->numface; i++) {
 		PLA_CalcABCD(*p,v[f->a],v[f->b],v[f->c]);		
 		p++; f++;
 	}
@@ -728,7 +730,7 @@ void CenterObject(TObject *obj)
 		else IncY = (float)fabs ((YMAX+YMIN) / 2);
 		if (ZMAX > fabs (ZMIN)) IncZ = -((ZMAX+ZMIN)/2);
 		else IncZ = (float)fabs ((ZMAX+ZMIN) / 2);
-		for (i=0; i<obj->numvtx; i++) {
+		for (WORD i=0; i<obj->numvtx; i++) {
 			obj->vtx[i].x += IncX;
 			obj->vtx[i].y += IncY;
 			obj->vtx[i].z += IncZ;

@@ -121,6 +121,10 @@ LRESULT CALLBACK WndProc (HWND hwnd,UINT msg,WPARAM wparam,LPARAM lparam)
 {
   switch (msg)
   {
+    case WM_SIZE:
+      VIDEO_NotifyResize(lparam&0xFFFF, (lparam>>16)&0xFFFF);
+      break;
+
     case WM_KEYDOWN:
       Keys[wparam] = true;
       break;
@@ -171,7 +175,7 @@ WNDCLASS wc;
   if (!hPrevInstance)
   {
     LOG ("Registering window class");
-    wc.style = 0;
+    wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WndProc;
     wc.cbClsExtra = 0; 
     wc.cbWndExtra = 0;
@@ -192,24 +196,54 @@ WNDCLASS wc;
   LOG ("Creating window");
   if (VIDEO_Windowed)
   {
-    HWnd = CreateWindow ("AnacondaSysWin30",
-                         "SysWin 3.0",
-                         WS_SIZEBOX | WS_BORDER | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
-                         0,0,320+6,240+23,NULL,NULL,hInstance,NULL);    
+      RECT windowRect;
+      windowRect.left   =(long)0;
+      windowRect.right  =(long)VIDEO_ScreenWidth;
+      windowRect.top    =(long)0;
+      windowRect.bottom =(long)VIDEO_ScreenHeight;
+      AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
+
+	  HWnd = CreateWindow ("AnacondaSysWin30",
+						  "SysWin 3.0",
+						  WS_OVERLAPPEDWINDOW,
+						  0,0,
+                          windowRect.right-windowRect.left,
+                          windowRect.bottom-windowRect.top,
+                          NULL,NULL,hInstance,NULL);    
   } else {
-    HWnd = CreateWindow ("AnacondaSysWin30",
-                         "SysWin 3.0",
-                         WS_POPUP,
-                         0,0,320,240,NULL,NULL,hInstance,NULL);
-    ShowCursor (false);
+
+		DEVMODE dmScreenSettings;								// Device Mode
+
+		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));	// Makes Sure Memory's Cleared
+		dmScreenSettings.dmSize=sizeof(dmScreenSettings);		// Size Of The Devmode Structure
+		dmScreenSettings.dmPelsWidth	= VIDEO_ScreenWidth;				// Selected Screen Width
+		dmScreenSettings.dmPelsHeight	= VIDEO_ScreenHeight;				// Selected Screen Height
+		dmScreenSettings.dmBitsPerPel	= VIDEO_ScreenBpp;					// Selected Bits Per Pixel
+		dmScreenSettings.dmFields		= DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		if (ChangeDisplaySettings(&dmScreenSettings,CDS_FULLSCREEN)!=DISP_CHANGE_SUCCESSFUL)
+            return;
+
+		HWnd = CreateWindowEx(	WS_EX_APPWINDOW | WS_EX_TOPMOST,		// Extended Style For The Window
+								"AnacondaSysWin30",
+								"SysWin 3.0",								// Window Title
+								WS_POPUP |
+								WS_CLIPSIBLINGS |					// Required Window Style
+								WS_CLIPCHILDREN,					// Required Window Style
+								0,0,VIDEO_ScreenWidth,VIDEO_ScreenHeight,NULL,NULL,hInstance,NULL);						  
+	  ShowCursor (false);
   }
+
   if (!HWnd) 
   {
     ERR ("Can't create window handle");
     return false;  
   }
   
-  ShowWindow (HWnd,SW_NORMAL);  
+  ShowWindow(HWnd,SW_SHOW);
+  SetForegroundWindow(HWnd);
+  SetFocus(HWnd);
   UpdateWindow (HWnd);
 
   LOG ("Begin thread");
