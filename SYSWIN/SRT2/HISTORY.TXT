@@ -1,0 +1,186 @@
+
+Agost   de 99:
+
+        ú Els problemes de c lcul detectats en Win, han sigut localitzats,
+        estaven relacionats amb codis en ASM que encara quedaven.
+        ú Implementades les Rotacions d'objectes: no va tan lent com semblava.
+
+
+Juliol de 99:
+        ú Parts de Ray de la demo "Myth of Orion" 100% enllestits.
+
+Finals Juny de 99:
+        ú Motor 100% acabat per la demo.
+        ú Torna a ser 100% C++, Sense ensamblador per enlloc ni MMX, ja que
+          en ambdos cassos no s'aprecia millora.
+        ú La tecnica de portals es funcional al maxim.
+        ú S'utilitza textures de m…squeres per a sombres, reflexes i
+          refraccions.
+        ú Els executables per a windows donen problemes de c…lcul del ray.
+
+
+Principis Juny de 99:
+
+        ú Durant Maig s'ha aturat el desenvolupament del motor, s'han
+          implementat els portals, ara puc tenir escenaris d'estil habitacio.
+          Tambe s'ha introduit la posibilitat d'animacions amb
+          Frame-Coherence: les animacions s'acceleren de 20% al 50%.
+        ú Es te una primera aproximaci¢ als Height-Fields, es deixa aparcat
+          per a mes endavant.
+        ú S'incorporent les textures procedurals del motor V2.0.
+        ú S'han fet proves per algunes escenes de la demo: apunta be.
+
+
+Finals Abril de 99:
+
+        ú Motor V3.0 acabat, a falta de millores que sorgeixin.
+        ú Resultat:
+                ú Es un 30% mes rapid respecte la versio
+                  anterior, amb estructures enlloc de classes s'obre el cami
+                  cap la implementaci¢ directe d'algoritmes en asm, el calcul
+                  de llum Difusa ja ho esta.
+                ú S'utilitza les MMX per certs calculs d'RGB,
+                  les millores no son apreciables.
+                ú Possiblitat de reflexes y transperencies per masqueres.
+                ú Noves formes basiques: Blobs i Superficies de Revoluci¢.
+                ú Accelerats els calculs d'el.lipses, cylindres i plans.
+                ú Nous proposits:
+                        ú Comensar el disseny d'animacios que aniran a la demo
+                          per Euskal VI.
+                        ú Adaptar el motor per l'algoritme de portals, les
+                          primeres proves al respecte han donat molt bons
+                          resultats.
+
+Mar‡  de 99:
+
+        ú Hi ha la possibilitat d'assitir a Fallas Party:
+                ú S'optimitza y redueix el motor V2.0 per una demo de 64k.
+                ú Degut a aquest treball es localitzaen bugs diversos:
+                        ú Assignaci¢ de propietats en CSG no correcte.
+                        ú Els Flags dels objectes s'assignent malament.
+                        ú El watcom i les classes es porten malament.
+                        ú
+        ú Finalment la demo queda per fer: es pospont per Euskal Party.
+        ú Es decideix pasar el motor a estructures i no a classes:
+                ú Sera en un principi SystemR V3.0
+                ú Construccio per directives estil filosofia OpenGL.
+                ú En un principi motor destinat a demos, Hi la la posiblitat
+                  de que si el resultat es bo.. sigui la versio base per
+                  realitzar el motor de projecte.
+
+Febrer  de 99:
+
+        ú Acabats examens continua la tasca.
+        ú Es concreten coses amb el CVC:
+                ú Projecte a definir totalment.
+                ú Opcio d'investigaci¢ amb Cascs de Realitat Virtual.
+        ú Nous proposits:
+                ú Calcul distribuit d'imatges via IPX o TCP/IP (a decidir).
+                ú Millora qualitat d'imtages: Caracteristiques luminiques
+                  assignat al color y no al objecte.
+                ú Remodelaci¢ total del motor: Terure porqueria.
+
+
+
+Novembre de 98:
+
+        ú SystemR v2.0 semi acabat.
+        ú Resultat:
+                ú Calculs de color a 24 bits de profunditat.
+                ú Millora dels bucles de calcul.
+                ú Incorporada el.lipse (No obtimitzada).
+                ú Bug de camara arreglat, era un error idiota
+                ú Degut a l'estudi de les Textures Procedurals es produeix un
+                  generador de Textures 2D, util per demos de 64K.
+                ú Incorpodada Llum Phong. Les Imatges adquireixen 300% de
+                  realisme. Els valors Phong son estil POV (Phong i PhonSize).
+                ú Textures 100% procedurals aconseguides:
+                        ú Definicio de textures simples i per capes.
+                        ú Tipus Marble, Wood i Checker.
+                ú Es crea un pseudo-llenguatje per a facilitar la tasca.
+        ú Es barreja la opci¢ d'Aprofitar el SystemR com Projecte final de
+          carrera: El centre de Visio per Computador de la UAB considera
+          bona la idea sembla bona (Cal fer molta feina encara).
+
+        ú S'aparca el projecte: Treball i Examens.
+
+Agost de 98:
+
+        ú Es prepara el motor SystemR per a ser un motor de Ray per Demos de
+          64K
+        ú Es redueix moltissim el codi, gairebe un terc.
+        ú El motor ha de ser V2.0
+        ú Nous proposits:
+                ú Suport Vesa2.0 amb 24 bits de color.
+                ú Millora dels bucles de calcul.
+                ú Noves figures base: el.lipse.
+                ú Arreglar el Bug de camara ja que distorsiona les imatges.
+                ú Standaritzars efectes de realitat estil Bump i
+                  Waves per a tots els objectes.
+                ú Suport a Textures Procedurals.
+
+
+Mitjants Juny - Finals Juliol (EUSKAL-6)
+
+        ú S'acaben totes les parts de Ray-Tracing de la demo.
+        ú Es milloren bucles de calcul.
+        ú Es realitza l'interpolat de textures per a grids de NxM.
+
+
+Finals Maig 98 principis Juny 98:
+
+        ú S'incorpora al Motor el suport a transparencies, amb definicio de
+          l'index de refraccio.
+        ú Animacio acabada.
+        ú Es dissenya una segona animacio per a mostrar les transparencies.
+        ú S'implementa un segon bucle de calcul per a poder realitzar renders
+          directes a pantalla pixel a pixel, aquesta part esta destinada a la
+          realitzacio de credits finals de la Demo.
+
+Mitjants Maig 98:
+
+        ú SystemR v1.0 acabat.
+        ú Resultat:
+                ú Motor a 255 colors de definicio.
+                ú Tra‡at per grid de NxM rajos, tamany de pantalla definible.
+                ú Suport multiples eferes,plans,cylindres,cubs, CSG multinivell.
+                ú Una sola Llum amb color definit a Blanc.
+                ú Llum Ambient.
+                ú Colors plans i textures externes (255x255 gif).
+                ú Animaci¢ tan de camara com d'objectes.
+                ú Efectes de realitat: Sombres, Reflexos Multiples, Bumps, Waves.
+                ú Optimitzaci¢ a nivell de codi.
+        ú Es localitzen errors en el calcul de la camera i dels cubs, pero son
+          de baix relleu i s'apla‡a la seva resolucio a pasat l'Euskal.
+        ú L'animaci¢ per la Demo esta 90% enllestida, s'implementa un suport
+          extern per al disseny de les animacions (parse files).
+
+
+Finals Abril 98
+
+        ú SystemR v1.0 enllestit al 90%.
+        ú Sincorpora el suport a CSG multiple.
+        ú S'intenta optimitzaci¢ per BoundigBox pero no s'aconsegueix.
+        ú Es comen‡a a dissenyar l'animacio per a la demo.
+
+
+Abril 98
+
+        ú Comen‡a el disseny del SystemR V1.0, destinat a ser el motor
+          de la part Ray-Tracer de la demo a presentar a Euskal-6.
+          Primers proposits:
+                ú Motor a 255 colors de definicio.
+                ú Tra‡at per grid de NxM rajos.
+                ú Suport multiples eferes,plans,cylindres,cubs.
+                ú Multiples llums.
+                ú Colors plans i textures externes (255x255 gif).
+                ú Animaci¢ tan de camara com d'objectes.
+                ú Efectes de realitat: Sombres, Reflexos, Bumps.
+
+
+Mar‡ 98
+
+        ú Primera aproximacio al sistemes de tra‡at de rajos. Esferes amb llum
+        ú Primer motor simplicim per a escenes amb esferes i plans. Camara
+          estatica
+

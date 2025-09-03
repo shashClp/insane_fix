@@ -1,0 +1,48 @@
+System-RV30: <LOG FILE>
+SRT: SystemR-Alloc Ellipse in Memory at [8356f680]
+SRT: SystemR-Alloc Ellipse in Memory at [8356f740]
+SRT: SystemR-Alloc Ellipse in Memory at [8356f800]
+SRT: SystemR-Alloc Ellipse in Memory at [8356f8c0]
+SRT: SystemR-Alloc Ellipse in Memory at [8356f980]
+SRT: SystemR-Alloc Ellipse in Memory at [8356fa40]
+SRT: SystemR-Alloc Ellipse in Memory at [8356fb00]
+SRT: SystemR-Alloc Ellipse in Memory at [8356fbc0]
+SRT: SystemR-Alloc Ellipse in Memory at [8356fc80]
+SRT: SystemR-Alloc Ellipse in Memory at [8356fd40]
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Plane in Memory
+SRT: SystemR-Alloc Light in Memory at [834c6530]
+SRT:     Position: <0.000,0.000,0.000>
+SRT:     Radius  : <6.000,5.000,6.000>
+SRT:     Color   : <168,148,  8>
+SRT:     Specular Values: Factor = 1.000 , Size = 100.000
+SRT:     Color   : < 17,196,175>
+SRT: SystemR-Alloc Procedural textures Noise Tables
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356f680]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356f740]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356f800]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356f8c0]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356f980]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356fa40]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356fb00]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356fbc0]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356fc80]
+SRT: SystemR-DeAlloc Ellipse of Memory at [8356fd40]
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
+SRT: SystemR-DeAlloc Plane of Memory
